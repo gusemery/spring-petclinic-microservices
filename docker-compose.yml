@@ -5,6 +5,16 @@ services:
     image: springcommunity/spring-petclinic-config-server
     container_name: config-server
     mem_limit: 512M
+    volumes:
+      - ./otel:/otel
+    environment:
+      JAVA_TOOL_OPTIONS: -javaagent:/otel/opentelemetry-javaagent-all.jar
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
+      OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=configs-server,resource.type=docker
+      OTEL.EXPORTER.OTLP.INSECURE: 'true'
+#      SPRING_PROFILES_ACTIVE: mysql
     ports:
      - 8888:8888
 
@@ -22,9 +32,20 @@ services:
     image: springcommunity/spring-petclinic-customers-service
     container_name: customers-service
     mem_limit: 512M
+    volumes:
+      - ./otel:/otel
+    environment:
+      JAVA_TOOL_OPTIONS: -javaagent:/otel/opentelemetry-javaagent-all.jar
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
+      OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=customers-service,resource.type=docker
+      OTEL.EXPORTER.OTLP.INSECURE: 'true'
+#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
-     - config-server
-     - discovery-server
+      - config-server
+      - discovery-server
+      - tracing-server
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
     - 8081:8081
@@ -33,9 +54,20 @@ services:
     image: springcommunity/spring-petclinic-visits-service
     container_name: visits-service
     mem_limit: 512M
+    volumes:
+      - ./otel:/otel
+    environment:
+      JAVA_TOOL_OPTIONS: -javaagent:/otel/opentelemetry-javaagent-all.jar
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
+      OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=visits-service,resource.type=docker
+      OTEL.EXPORTER.OTLP.INSECURE: 'true'
+#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
-     - config-server
-     - discovery-server
+      - config-server
+      - discovery-server
+      - tracing-server
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8082:8082
@@ -44,40 +76,101 @@ services:
     image: springcommunity/spring-petclinic-vets-service
     container_name: vets-service
     mem_limit: 512M
+    volumes:
+      - ./otel:/otel
+    environment:
+      JAVA_TOOL_OPTIONS: -javaagent:/otel/opentelemetry-javaagent-all.jar
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
+      OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=vets-service,resource.type=docker
+      OTEL.EXPORTER.OTLP.INSECURE: 'true'
+#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
-     - config-server
-     - discovery-server
+      - config-server
+      - discovery-server
+      - tracing-server
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8083:8083
+
+#  api-gateway:
+#    image: springcommunity/spring-petclinic-api-gateway
+#    container_name: api-gateway
+#    mem_limit: 512M
+#    depends_on:
+#     - config-server
+#     - discovery-server
+#    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+#    ports:
+#     - 8080:8080
 
   api-gateway:
     image: springcommunity/spring-petclinic-api-gateway
     container_name: api-gateway
     mem_limit: 512M
+    volumes:
+      - ./otel:/otel
+    environment:
+      JAVA_TOOL_OPTIONS: -javaagent:/otel/opentelemetry-javaagent-all.jar
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
+      OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=api-gateway,resource.type=docker
+      OTEL.EXPORTER.OTLP.INSECURE: 'true'
+#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
-     - config-server
-     - discovery-server
+      - config-server
+      - discovery-server
+      - tracing-server
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8080:8080
 
   tracing-server:
-    image: openzipkin/zipkin
+    image: logicmonitor/lmotel
     container_name: tracing-server
     mem_limit: 512M
+    volumes:
+      - ./otel:/otel
+    command: --log-level DEBUG  --config /otel/lmconfig.yaml --log-format json
     environment:
-    - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
+      LOGICMONITOR_ACCOUNT: lmnicholasemery
+      LOGICMONITOR_BEARER_TOKEN: RUZSOXVaTXhNcThNQTZwOEJiMjU6ZW9GNTllOEFDZjRORDNVa2VxQTQ0UT09
+      LOGICMONITOR_OTEL_NAME: PetClinic-1
     ports:
-     - 9411:9411
+      - 55680:55680
+      - 55681:55681
+      - 9411:9411
+
+
+#  tracing-server1:
+#    image: openzipkin/zipkin
+#    container_name: tracing-server
+#    mem_limit: 512M
+#    environment:
+#    - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
+#    ports:
+#     - 9411:9411
 
   admin-server:
     image: springcommunity/spring-petclinic-admin-server
     container_name: admin-server
     mem_limit: 512M
+    volumes:
+      - ./otel:/otel
+    environment:
+      JAVA_TOOL_OPTIONS: -javaagent:/otel/opentelemetry-javaagent-all.jar
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
+      OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=admin-server,resource.type=docker
+      OTEL.EXPORTER.OTLP.INSECURE: 'true'
+ #     SPRING_PROFILES_ACTIVE: mysql
     depends_on:
-     - config-server
-     - discovery-server
+      - config-server
+      - discovery-server
+      - tracing-server
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 9090:9090
@@ -97,3 +190,4 @@ services:
     mem_limit: 256M
     ports:
     - 9091:9090
+
