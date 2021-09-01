@@ -14,7 +14,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
       OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=configs-server,resource.type=docker
       OTEL.EXPORTER.OTLP.INSECURE: 'true'
-#      SPRING_PROFILES_ACTIVE: mysql
     ports:
      - 8888:8888
 
@@ -41,7 +40,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
       OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=customers-service,resource.type=docker
       OTEL.EXPORTER.OTLP.INSECURE: 'true'
-#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
       - config-server
       - discovery-server
@@ -63,7 +61,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
       OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=visits-service,resource.type=docker
       OTEL.EXPORTER.OTLP.INSECURE: 'true'
-#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
       - config-server
       - discovery-server
@@ -85,7 +82,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
       OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=vets-service,resource.type=docker
       OTEL.EXPORTER.OTLP.INSECURE: 'true'
-#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
       - config-server
       - discovery-server
@@ -93,17 +89,6 @@ services:
     entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
     ports:
      - 8083:8083
-
-#  api-gateway:
-#    image: springcommunity/spring-petclinic-api-gateway
-#    container_name: api-gateway
-#    mem_limit: 512M
-#    depends_on:
-#     - config-server
-#     - discovery-server
-#    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
-#    ports:
-#     - 8080:8080
 
   api-gateway:
     image: springcommunity/spring-petclinic-api-gateway
@@ -118,7 +103,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
       OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=api-gateway,resource.type=docker
       OTEL.EXPORTER.OTLP.INSECURE: 'true'
-#      SPRING_PROFILES_ACTIVE: mysql
     depends_on:
       - config-server
       - discovery-server
@@ -135,23 +119,13 @@ services:
       - ./otel:/otel
     command: --log-level DEBUG  --config /otel/lmconfig.yaml --log-format json
     environment:
-      LOGICMONITOR_ACCOUNT: lmnicholasemery
-      LOGICMONITOR_BEARER_TOKEN: RUZSOXVaTXhNcThNQTZwOEJiMjU6ZW9GNTllOEFDZjRORDNVa2VxQTQ0UT09
-      LOGICMONITOR_OTEL_NAME: PetClinic-1
+      LOGICMONITOR_ACCOUNT: <add>
+      LOGICMONITOR_BEARER_TOKEN: <add>
+      LOGICMONITOR_OTEL_NAME: <add>
     ports:
       - 55680:55680
       - 55681:55681
       - 9411:9411
-
-
-#  tracing-server1:
-#    image: openzipkin/zipkin
-#    container_name: tracing-server
-#    mem_limit: 512M
-#    environment:
-#    - JAVA_OPTS=-XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom
-#    ports:
-#     - 9411:9411
 
   admin-server:
     image: springcommunity/spring-petclinic-admin-server
@@ -166,7 +140,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tracing-server:55680
       OTEL_RESOURCE_ATTRIBUTES: service.namespace=petclinic,service.name=admin-server,resource.type=docker
       OTEL.EXPORTER.OTLP.INSECURE: 'true'
- #     SPRING_PROFILES_ACTIVE: mysql
     depends_on:
       - config-server
       - discovery-server
